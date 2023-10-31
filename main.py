@@ -1,35 +1,42 @@
 import time
+
 import pyautogui
 from win10toast import ToastNotifier
 
+CHECK_INTERVAL = 20
+BREAK_TIME = 120
+MAX_TIME = 60 * 60
+
+BREAK_INTERVALS = BREAK_TIME // CHECK_INTERVAL
+
 
 def check_mouse_activity():
-    ticks = 0
+    slices = []
     while True:
         # Get the current mouse position
         x, y = pyautogui.position()
-        moved = False
 
         # Wait for 10 minutes
         # 10 minutes = 600 seconds
-        time.sleep(600)
+        time.sleep(CHECK_INTERVAL)
 
         # Check if the mouse position is still the same
         new_x, new_y = pyautogui.position()
         if x == new_x and y == new_y:
-            if moved == True:
-                print("Ticks reset.")
-            moved = False
-            ticks = 0
+            # Rested
+            slices.append(True)
         else:
-            moved = True
-            ticks += 1
-            print("Tick.")
+            # Moved
+            slices.append(False)
 
-        if moved == True and ticks > 6:
-            # Mouse hasn't moved, send a notification
+        if all(slices[-BREAK_INTERVALS:]):
+            # If had break, reset counter
+            slices = []
+            print("Had a break")
+
+        if len(slices) >= MAX_TIME // CHECK_INTERVAL:
             notifier = ToastNotifier()
-            notifier.show_toast("Activity Alert", "No 10 minute break for an hour!", duration=10)
+            notifier.show_toast("Activity Alert", "No break for an hour!", duration=10)
 
 
 if __name__ == "__main__":

@@ -1,1 +1,3 @@
 alert/
+__pycache__/
+*.py[cod]
